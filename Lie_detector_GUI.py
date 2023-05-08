@@ -19,12 +19,10 @@ humd_list = deque(maxlen=20)
 CO2_list = deque(maxlen=20)
 
 ser = serial.Serial()  
-ser.port = '/dev/cu.usbmodem14101'     
+ser.port = '/dev/cu.usbmodem14301'     
 ser.baudrate = 115200   
 
-def float_message(data):
-    
-     return [float(s) for s in data]
+
 
 ser.open()
 
@@ -40,6 +38,8 @@ def serialRead(ser, cmd):
         message = ser.readline() # read a line of data from serial port
         data_string = message.decode("utf-8")
         data = re.findall('[\d]+[.,\d]+', data_string) # extract values from string in a list
+        if len(data) == 2:
+            data.insert(0,0)
         serial_read_state=True
     else:
         time.sleep(0.1)
@@ -47,33 +47,46 @@ def serialRead(ser, cmd):
     return data 
 
 app = dash.Dash(__name__)
-app.layout = html.Div(children=[
-    html.Div([
-        dcc.Graph(id='live-graph', animate=True),
-        dcc.Interval(
-            id='graph-update',
-            interval=5*1000   
-        ),
+app.layout = html.Div([
+    html.H1('Lie detector'),
+    html.H2('Group 5'),
+    dcc.Tabs(id="tabs-graph", value='tab1-graph', children=[
+        dcc.Tab(label='Heart rate', value='tab1-graph'),
+        dcc.Tab(label='CO2', value='tab2-graph'),
+        dcc.Tab(label='Humidity', value='tab3-graph')
     ]),
-    html.Div([
-        dcc.Graph(id='live-graph2', animate=True),
-        dcc.Interval(
-            id='graph-update2',
-            interval=5*1000  
-        ),
-    ]),
-    html.Div([
-        dcc.Graph(id='live-graph3', animate=True),
-        dcc.Interval(
-            id='graph-update3',
-            interval=5*1000    
-        ),
-    ])
-    
-  ]
-)
+    html.Div(id='tabs-content-graph')
+])
 
-
+@app.callback(Output('tabs-content-graph', 'children'),
+              Input('tabs-graph', 'value'))
+def render_content(tab):
+    if tab == 'tab1-graph':
+        return html.Div([
+            dcc.Graph(id='live-graph', animate=True),
+            dcc.Interval(
+                id='graph-update',
+                interval=5*1000   
+            ),
+        ]),
+    elif tab == 'tab2-graph':
+        return html.Div([
+            dcc.Graph(id='live-graph2', animate=True),
+            dcc.Interval(
+                id='graph-update2',
+                interval=5*1000  
+            ),
+        ]),
+    elif tab == 'tab3-graph':
+         return html.Div([
+              dcc.Graph(id='live-graph3', animate=True),
+              dcc.Interval(
+                  id='graph-update3',
+                  interval=5*1000    
+              ),
+          ])
+     
+        
 @app.callback(Output('live-graph', 'figure'),  
               [Input('graph-update', 'n_intervals')])
 def update_graph_scatter_heart(input_data): 
@@ -92,7 +105,7 @@ def update_graph_scatter_heart(input_data):
             mode= 'lines+markers'
             )
     return {'data': [data_heart],'layout' : go.Layout(xaxis=dict(range=[min(X_heart),max(X_heart)]),  
-                                                yaxis=dict(range=[0,200]), 
+                                                yaxis=dict(range=[0,max(heart_list)+10]), 
                                                 xaxis_title='Time Step ',
                                                 yaxis_title='Heart rate')} 
 
@@ -118,7 +131,7 @@ def update_graph_scatter_CO2(input_value):
     )
 
     return {'data': [data_CO2], 'layout' : go.Layout(xaxis=dict(range=[min(X_CO2),max(X_CO2)]),
-                                                     yaxis=dict(range=[min(CO2_list),max(CO2_list)+50]),
+                                                     yaxis=dict(range=[min(CO2_list)-50,max(CO2_list)+50]),
                                                      xaxis_title='Time Step',
                                                     yaxis_title='CO2 concentration',)}
 @app.callback(Output('live-graph3', 'figure'),   
@@ -138,7 +151,7 @@ def update_graph_scatter(input_data):
             mode= 'lines+markers'
             )
     return {'data': [data_humd],'layout' : go.Layout(xaxis=dict(range=[min(X_humd),max(X_humd)]),  
-                                                yaxis=dict(range=[20,max(humd_list)+10]),
+                                                yaxis=dict(range=[min(humd_list)-3,max(humd_list)+3]),
                                                 xaxis_title='Time Step',
                                                 yaxis_title='Humidity (%)')} 
 
