@@ -7,14 +7,9 @@
 
 #include "DFRobot_Heartrate.h"
 #define heartratePin A1;
-DFRobot_Heartrate heartrate(DIGITAL_MODE); ///< ANALOG_MODE or DIGITAL_MODE
-
-int co2Pin = A0;
-
 #define humdPin A2;
 
 #include <Adafruit_AHTX0.h>
-
 Adafruit_AHTX0 aht;
 int average_hr;
 int hr_sum;
@@ -71,23 +66,21 @@ void loop2(){
   }
   num_anomalies = 0;
 }
-// the loop routine runs over and over again forever:
+
 void loop() {
 
   int heartRate = analogRead(A1);
-  heartRate = map(heartRate, 0, 1500, 0, 200);
+  heartRate = map(heartRate, 0, 2100, 0, 200);
   Serial.print("Heart rate: ");
   Serial.print(heartRate);
-
-  int co2Value = analogRead(co2Pin); // Read the sensor value
-  float voltage = co2Value * (5.0 / 1023.0); // Convert the sensor value to voltage
-  float ratio = voltage / 4.9; // Calculate the ratio of the sensor voltage to the reference voltage (4.9V)
-  float concentration = (1.67 * pow(ratio, -1.23)) * 1000; // Calculate the concentration of CO2 in ppm
+  
+  int sensorValue = analogRead(A0);
+  int concentration = map(sensorValue, 0, 150, 0, 1000);
   Serial.print(" CO2 concentration: ");
   Serial.print(concentration);
 
   sensors_event_t humidity, temp;
-  aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
+  aht.getEvent(&humidity, &temp);
   int humd = humidity.relative_humidity;
   Serial.print(" Humidity: "); 
   Serial.print(humidity.relative_humidity);
@@ -105,10 +98,10 @@ void loop() {
   
   
   if (heartRate > average_hr + 30 || heartRate < average_hr-30) {
-    num_anomalies++; 
+    num_anomalies+= 2; 
   }
   
-  if (concentration > average_co2 +  10000|| concentration < average_co2 -10000) {
+  if (concentration > average_co2 +  80|| concentration < average_co2 -80) {
 	  num_anomalies ++;
   }
 
@@ -120,4 +113,3 @@ void loop() {
   
   delay(1000); // delay in between reads for stability
 }
-

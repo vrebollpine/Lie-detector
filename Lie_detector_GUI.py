@@ -19,7 +19,7 @@ humd_list = deque(maxlen=20)
 CO2_list = deque(maxlen=20)
 
 ser = serial.Serial()  
-ser.port = '/dev/cu.usbmodem14301'     
+ser.port = '/dev/cu.usbmodem14101'     
 ser.baudrate = 115200   
 
 def float_message(data):
@@ -52,21 +52,21 @@ app.layout = html.Div(children=[
         dcc.Graph(id='live-graph', animate=True),
         dcc.Interval(
             id='graph-update',
-            interval=2*1000   
+            interval=5*1000   
         ),
     ]),
     html.Div([
         dcc.Graph(id='live-graph2', animate=True),
         dcc.Interval(
             id='graph-update2',
-            interval=2*1000  
+            interval=5*1000  
         ),
     ]),
     html.Div([
         dcc.Graph(id='live-graph3', animate=True),
         dcc.Interval(
             id='graph-update3',
-            interval=2*1000    
+            interval=5*1000    
         ),
     ])
     
@@ -118,7 +118,7 @@ def update_graph_scatter_CO2(input_value):
     )
 
     return {'data': [data_CO2], 'layout' : go.Layout(xaxis=dict(range=[min(X_CO2),max(X_CO2)]),
-                                                     yaxis=dict(range=[min(CO2_list),max(CO2_list)]),
+                                                     yaxis=dict(range=[min(CO2_list),max(CO2_list)+50]),
                                                      xaxis_title='Time Step',
                                                     yaxis_title='CO2 concentration',)}
 @app.callback(Output('live-graph3', 'figure'),   
@@ -138,7 +138,7 @@ def update_graph_scatter(input_data):
             mode= 'lines+markers'
             )
     return {'data': [data_humd],'layout' : go.Layout(xaxis=dict(range=[min(X_humd),max(X_humd)]),  
-                                                yaxis=dict(range=[0,100]),
+                                                yaxis=dict(range=[20,max(humd_list)+10]),
                                                 xaxis_title='Time Step',
                                                 yaxis_title='Humidity (%)')} 
 
