@@ -75,7 +75,7 @@ void loop() {
   Serial.print(heartRate);
   
   int sensorValue = analogRead(A0);
-  int concentration = map(sensorValue, 0, 150, 0, 1000);
+  int concentration = map(sensorValue, 10, 150, 0, 1000);
   Serial.print(" CO2 concentration: ");
   Serial.print(concentration);
 
